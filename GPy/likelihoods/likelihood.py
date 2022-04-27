@@ -419,8 +419,6 @@ class Likelihood(Parameterized):
 
         """
         #conditional_mean: the edpected value of y given some f, under this likelihood
-        fmin = -np.inf
-        fmax = np.inf
         def int_mean(f,m,v):
             exponent = -(0.5/v)*np.square(f - m)
             #If exponent is under -30 then exp(exponent) will be very small, so don't exp it!)
@@ -433,7 +431,12 @@ class Likelihood(Parameterized):
                 return 0.
             else:
                 return self.conditional_mean(f)*p
-        scaled_mean = [quad(int_mean, fmin, fmax,args=(mj,s2j))[0] for mj,s2j in zip(mu,variance)]
+        scaled_mean = [
+            quad(int_mean,
+                 mj - np.sqrt(s2j)*7,
+                 mj + np.sqrt(s2j)*7,
+                 args=(mj,s2j)
+            )[0] for mj,s2j in zip(mu,variance)]
         mean = np.array(scaled_mean)[:,None] / np.sqrt(2*np.pi*(variance))
         return mean
 
